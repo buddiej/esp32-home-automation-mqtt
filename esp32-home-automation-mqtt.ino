@@ -682,7 +682,7 @@ void setup()
     if (wifiRetryAttempt > 5) 
     {
       Serial.println("Restarting!");
-      //interuptReboot();
+      ESP.restart();
     }
   }
   Serial.println("");
