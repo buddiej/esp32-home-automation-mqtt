@@ -1193,7 +1193,7 @@ void mqttconnect(void)
       if (mqttRetryAttempt > 5) 
       {
         Serial.println("Restarting!");
-        //interuptReboot();
+        ESP.restart();
       }
     }
   }
