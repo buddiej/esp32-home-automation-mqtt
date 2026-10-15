@@ -146,7 +146,6 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 
-int mqttRetryAttempt = 0;
 int wifiRetryAttempt = 0;
 boolean resetCondition = false;
                  
@@ -748,6 +747,7 @@ void setup()
   /* set SSL/TLS certificate */
   /* configure the MQTT server with IPaddress and port */
   client.setServer(serverHostname, 1883);
+  client.setSocketTimeout(2);
   /* this receivedCallback function will be invoked
     when client received subscribed topic */
   client.setCallback(receivedCallback);
@@ -1209,48 +1209,43 @@ return: void
 **************************************************************************************************/
 void mqttconnect(void)
 {
-  /* Loop until reconnected */
-  while (!client.connected()) 
+  static unsigned long lastAttempt = 0;
+  static bool attempted = false;
+
+  if (attempted && millis() - lastAttempt < 5000)
   {
-    Serial.print("MQTT connecting ...");
-    /* client ID */
-    String clientId = "esp32-home-automation-mqtt";
-    /* connect now */
-    if (client.connect(clientId.c_str(), serverUsername.c_str(), serverPassword.c_str()))
-    {
-      Serial.println("connected");
-      /* subscribe topic's */
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT01_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT02_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT03_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT04_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT05_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT06_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT07_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT08_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT09_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT10_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT11_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT12_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT13_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT14_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT15_PERCENT);
-      client.subscribe(TOPIC_LIVINGROOM_LIGHT16_PERCENT);
-    } 
-    else 
-    {
-      Serial.print("failed, status code =");
-      Serial.print(client.state());
-      Serial.println("try again in 5 seconds");
-      /* Wait 5 seconds before retrying */
-      delay(5000);
-      mqttRetryAttempt++;
-      if (mqttRetryAttempt > 5) 
-      {
-        Serial.println("Restarting!");
-        ESP.restart();
-      }
-    }
+    return;
+  }
+
+  attempted = true;
+  lastAttempt = millis();
+  Serial.print("MQTT connecting ...");
+  String clientId = "esp32-home-automation-mqtt";
+  if (client.connect(clientId.c_str(), serverUsername.c_str(), serverPassword.c_str()))
+  {
+    Serial.println("connected");
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT01_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT02_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT03_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT04_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT05_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT06_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT07_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT08_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT09_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT10_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT11_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT12_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT13_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT14_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT15_PERCENT);
+    client.subscribe(TOPIC_LIVINGROOM_LIGHT16_PERCENT);
+  } 
+  else 
+  {
+    Serial.print("failed, status code =");
+    Serial.print(client.state());
+    Serial.println("try again in 5 seconds");
   }
 }
 
