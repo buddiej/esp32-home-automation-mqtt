@@ -16,6 +16,15 @@ Die Firmware steuert bis zu **16 dimmbare Lichtkanäle** über PCA9685-Module un
 - LED-Strom-/Leistungsabschätzung via ACS712
 - OTA-Updates über `ArduinoOTA`
 
+## Firmware über OTA flashen
+
+1. Die Firmware zunächst per USB flashen und sicherstellen, dass die WLAN-Zugangsdaten in `_authentification.h` stimmen.
+2. ESP32 und Entwicklungsrechner mit demselben Netzwerk verbinden.
+3. In der Arduino IDE das passende ESP32-Board auswählen. Sobald die Firmware mit dem WLAN verbunden ist, erscheint unter **Werkzeuge → Port** der Netzwerk-Port `esp32-home-automation-mqtt` (gegebenenfalls mit IP-Adresse).
+4. Diesen Netzwerk-Port auswählen und wie gewohnt **Hochladen** starten. Die Firmware initialisiert `ArduinoOTA` nach der WLAN-Verbindung und verarbeitet Uploads fortlaufend in `loop()`.
+
+Falls der Netzwerk-Port nicht erscheint, WLAN-Verbindung und IDE-Netzwerkerkennung prüfen. MQTT ist für OTA nicht erforderlich.
+
 ## MQTT API (Kurzfassung)
 
 ### Eingehende Topics (Subscribe)

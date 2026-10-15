@@ -146,7 +146,6 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 
-int mqttRetryAttempt = 0;
 int wifiRetryAttempt = 0;
 boolean resetCondition = false;
                  
@@ -748,6 +747,7 @@ void setup()
   /* set SSL/TLS certificate */
   /* configure the MQTT server with IPaddress and port */
   client.setServer(serverHostname, 1883);
+  client.setSocketTimeout(2);
   /* this receivedCallback function will be invoked
     when client received subscribed topic */
   client.setCallback(receivedCallback);
@@ -1209,8 +1209,19 @@ return: void
 **************************************************************************************************/
 void mqttconnect(void)
 {
-  /* Loop until reconnected */
-  while (!client.connected()) 
+  static unsigned long lastAttempt = 0;
+  static bool attempted = false;
+
+  if (attempted && millis() - lastAttempt < 5000)
+  {
+    return;
+  }
+
+  attempted = true;
+  lastAttempt = millis();
+
+  /* Attempt to reconnect */
+  while (!client.connected())
   {
     Serial.print("MQTT connecting ...");
     /* client ID */
@@ -1236,20 +1247,13 @@ void mqttconnect(void)
       client.subscribe(TOPIC_LIVINGROOM_LIGHT14_PERCENT);
       client.subscribe(TOPIC_LIVINGROOM_LIGHT15_PERCENT);
       client.subscribe(TOPIC_LIVINGROOM_LIGHT16_PERCENT);
-    } 
-    else 
+    }
+    else
     {
       Serial.print("failed, status code =");
       Serial.print(client.state());
       Serial.println("try again in 5 seconds");
-      /* Wait 5 seconds before retrying */
-      delay(5000);
-      mqttRetryAttempt++;
-      if (mqttRetryAttempt > 5) 
-      {
-        Serial.println("Restarting!");
-        ESP.restart();
-      }
+      return;
     }
   }
 }
